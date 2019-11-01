@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% block title %}
+{{block.super}}Tweets
+{% endblock title %}
+
+{% block script %}
+<script>
+    function getParamaterByName(name, url) {
+        if (!url) {
+            url = window.location.href;
+        }
+        name = name.replace(/[\[\]]/g, "\\$&");
+        var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+            results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, " "));
+    }
+
+    $(document).ready(function () {
+        var query = getParamaterByName('q');
+        var tweetList = [];
+        var nextTweetUrl;
+
+        function attachTweet(tweetValue, prepend) {
+            var tweetUser = tweetValue.user;
+            var tweetContent = tweetValue.content;
+            var dateDisplay = tweetValue.date_display;
+            var timeSince = tweetValue.timesince;
+            var tweetFormattedHtml = "<div class='media mt-4'><div class='media-body'><h5 class='mt-0'>" + tweetContent + "</h5>" + "via <a href='" + tweetUser.url + "'>" + tweetUser.username + "</a> | " + dateDisplay + " | " + timeSince + "</div><hr />"
+            if (prepend == true) {
+                $('#tweet-container').prepend(tweetFormattedHtml);
+            }
+            else {
+                $('#tweet-container').append(tweetFormattedHtml);
+            }
+
+        }
+
+        function parseTweets() {
+            if (tweetList == 0) {
+                $('#tweet-container').text("No tweets currently found !!");
+            }
+            else {
+                $.each(tweetList, function (key, value) {
+                    var tweetKey = key;
+                    attachTweet(value);
+                });
+            }
+        }
+
+        function fetchTweets(url) {
+            console.log("fetching...");
+            var fetchUrl;
+            if (!url) {
+                fetchUrl = '/api/tweet/'
+            }
+            else {
+                fetchUrl = url;
+            }
+            $.ajax({
+                url: fetchUrl,
+                data: {
+                    'q': query,
+                },
+                method: "GET",
+                success: function (data) {
+                    console.log(data);
+                    tweetList = data.results;
+                    if (data.next) {
+                        nextTweetUrl = data.next;
+                    }
+                    else {
+                        $('#LoadMore').hide();
+                    }
+                    parseTweets();
+                },
+                error: function (data) {
+                    console.log("error");
+                    console.log(data);
+                },
+            });
+        }
+        fetchTweets();
+        $('#LoadMore').click(function (event) {
+            event.preventDefault();
+            if (nextTweetUrl) {
+                fetchTweets(nextTweetUrl);
+            }
+        })
+
+        var charsStart = 140;
+        var charsCurrent = 0;
+        var charsLeft = 0;
+        $("#tweet-form").append("<span id='tweetCharsLeft' class='ml-3'>" + charsStart + "</span>");
+        $("#tweet-form textarea").keyup(function (event) {
+            // console.log(event.key, event.timeStamp);
+            var tweetValue = $(this).val()
+            charsCurrent = charsStart - tweetValue.length;
+            var spanChars = $("#tweetCharsLeft");
+            spanChars.text(charsCurrent);
+            if (charsCurrent > 0) {
+                spanChars.removeClass("text-success")
+                spanChars.removeClass("text-danger")
+            }
+            else if (charsCurrent == 0) {
+                spanChars.addClass("text-success")
+                spanChars.removeClass("text-danger")
+            }
+            else if (charsCurrent < 0) {
+                spanChars.addClass("text-danger")
+                spanChars.removeClass("text-success")
+            }
+        });
+        $("#tweet-form").submit(function (event) {
+            event.preventDefault();
+            var this_ = $(this);
+            var formData = this_.serialize();
+            if (charsCurrent >= 0) {
+
+
+                $.ajax({
+                    url: "/api/tweet/create/",
+                    data: formData,
+                    method: "POST",
+                    success: function (data) {
+                        // console.log(data);
+                        // fetchTweets();
+                        this_.find("input[type=text], textarea").val("");
+                        attachTweet(data, true);
+
+                    },
+                    error: function (data) {
+                        console.log("error");
+                        console.log(data.statusText);
+                        console.log(data.status);
+                    },
+                });
+            }
+            else {
+                console.log("Cannot send, tweet so long !!");
+            }
+        });
+
+    }); 
+</script>
+{% endblock script %}
+{% block body %}
+
+<div class="card shadow-lg">
+    <div class="card-body">
+        <div class="row p-2">
+            <div class="col-3">
+                <h2 class="text-white bg-dark p-4 mt-3">Hello {{ request.user.username }} !</h2>
+            </div>
+            <div class="col-9">
+                {% if not request.GET.q %}
+                <div class="card mb-5">
+                    <div class="card-body w-100">
+                        <div class="row">
+                            <div class="col-12">
+                                {% include 'tweets/form.html' with form=create_form action_url=create_url btn_title='Tweet' form_id="tweet-form" %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div id="tweet-container">
+
+                </div>
+                <a href="#" id="LoadMore">Load more tweets</a>
+                <!-- {% for object in object_list %}
+                <div class="media mt-4">
+                    <div class="media-body">
+                        <h5 class="mt-0">{{ object.content }}</h5>
+                        via {{ object.user }} | {{ object.timestamp|timesince }} ago | <a
+                            href="{{ object.get_absolute_url }}">View <i class="fa fa-caret-right"
+                                aria-hidden="true"></i></a>
+                        <br />
+                    </div>
+                </div>
+                <hr />
+                {% empty %}
+                {% if request.GET.q %}
+                <p>No tweets found !!</p>
+                {% else %}
+                <p>No tweets yet !!</p>
+                <hr />
+                {% endif %}
+                {% endfor %}
+            </div> -->
+            </div>
+        </div>
+    </div>
+    {% endblock body %}

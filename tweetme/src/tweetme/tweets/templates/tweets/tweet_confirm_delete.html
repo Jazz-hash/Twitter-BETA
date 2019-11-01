@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}
+{{block.super}}Tweets
+{% endblock title %}
+{% block body %}
+<form action="" method="POST">
+    {% csrf_token %}
+    <p>Are you sure you want to delete the tweet "{{object}}"?</p>
+    <input type="submit" value="Confirm">
+</form>
+{% endblock body %}

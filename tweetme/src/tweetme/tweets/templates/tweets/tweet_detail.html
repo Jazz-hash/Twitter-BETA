@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}
+{{block.super}}Tweets
+{% endblock title %}
+{% block body %}
+<div class="card shadow-lg">
+    <div class="card-body">
+        <div class="row p-2">
+            <div class="col-3 bg-dark">
+                <h1 class="text-white mt-3">{{ object.user }}</h1>
+            </div>
+            <div class="col-9">
+                <div class="media mt-4">
+                    <div class="media-body">
+                        <h5 class="mt-0">{{ object.content }}</h5>
+                        {{ object.timestamp|timesince }} ago
+                        <br />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock body %}
