@@ -15,14 +15,17 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf.urls import url
 from django.conf import settings
 from django.conf.urls.static import static
 from . views import home
 from tweets.views import TweetListView
+from hashtags.views import HashTagView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', TweetListView.as_view(), name='home'),
+    url(r'^tags/(?P<hashtag>.*)/$', HashTagView.as_view(), name='hashtag'),
     path('tweet/', include('tweets.urls', namespace='tweet')),
     path('api/tweet/', include('tweets.api.urls', namespace='tweet-api')),
     path('', include('accounts.urls', namespace='profiles')),

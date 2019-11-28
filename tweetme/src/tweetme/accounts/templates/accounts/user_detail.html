@@ -6,24 +6,27 @@
         <div class="row p-2">
             <div class="col-3 bg-dark">
                 <h1 class="text-white mt-3">{{ object.username }}</h1>
-                <h3 class="text-white mt-3">Followers: {{object.followed_by.count}}</h3>
+                <h3 class="text-white mt-3">Followers: {{object.followed_by.all.count }}</h3>
+                <p><a class="btn btn-link" href="{{ object.profile.get_follow_url }}">
+                        {% if following %} Unfollow {% else %} Follow {% endif %}
+                    </a></p>
             </div>
             <div class="col-9">
                 <div class="media mt-4">
                     <div class="media-body">
-                        <h1>Tweets</h1>
+                        <h1>Tweets <small>({{object.tweet_set.all.count}})</small></h1>
                         {% for tweet in object.tweet_set.all %}
                         {{tweet}}<br />
                         {% endfor %}
                         <hr />
-                        <h1>Following</h1>
-                        {% for user in object.profile.following.all %}
+                        <h1>Following <small>({{object.profile.get_following.count}})</small></h1>
+                        {% for user in object.profile.get_following %}
                         <h6><a href="/{{ user.username }}">{{user.username}}</a></h6>
                         {% empty %}
                         <h6>Not following any users</h6>
                         {% endfor %}
                         <hr />
-                        <h1>Followed By</h1>
+                        <h1>Followed By <small>({{object.followed_by.all.count}})</small></h1>
                         {% for profile in object.followed_by.all %}
                         <h6><a href="/{{ profile.user.username }}">{{profile.user.username}}</a></h6>
                         {% empty %}

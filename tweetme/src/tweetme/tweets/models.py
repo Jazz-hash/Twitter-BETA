@@ -8,6 +8,8 @@ from django.urls import reverse
 
 
 class Tweet(models.Model):
+    parent = models.ForeignKey(
+        "self", blank=True, null=True, on_delete=models.CASCADE)
     # user
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
                              on_delete=models.CASCADE)

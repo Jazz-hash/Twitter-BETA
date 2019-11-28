@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}
+{{block.super}}Tweets
+{% endblock title %}
+
+{% block body %}
+
+<div class="card shadow-lg">
+    <div class="card-body">
+        <div class="row p-2">
+            <div class="col-3">
+                <h2 class="p-4 mt-3">{{ obj.tag }} !</h2>
+            </div>
+            <div class="col-9">
+                {% for tweet in obj.get_tweets %}
+                {{tweet}}<br />
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endblock body %}

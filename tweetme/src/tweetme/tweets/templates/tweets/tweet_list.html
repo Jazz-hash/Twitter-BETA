@@ -22,12 +22,24 @@
         var tweetList = [];
         var nextTweetUrl;
 
+        function updateHashLinks() {
+            $('.hashtags').each(function (data) {
+                var hashtagRegex = /(^|\s)#([\w\d-]+)/g;
+                console.log(hashtagRegex);
+                var newText = $(this).html().replace(hashtagRegex, "$1<a href='/tags/$2/'>#$2</a>");
+                $(this).html(newText);
+                console.log(newText);
+
+
+            });
+        }
+
         function attachTweet(tweetValue, prepend) {
             var tweetUser = tweetValue.user;
             var tweetContent = tweetValue.content;
             var dateDisplay = tweetValue.date_display;
             var timeSince = tweetValue.timesince;
-            var tweetFormattedHtml = "<div class='media mt-4'><div class='media-body'><h5 class='mt-0'>" + tweetContent + "</h5>" + "via <a href='" + tweetUser.url + "'>" + tweetUser.username + "</a> | " + dateDisplay + " | " + timeSince + "</div><hr />"
+            var tweetFormattedHtml = "<div class='media mt-4'><div class='media-body'><h5 class='mt-0 hashtags'>" + tweetContent + "</h5>" + "via <a href='" + tweetUser.url + "'>" + tweetUser.username + "</a> | " + dateDisplay + " | " + timeSince + "</div><hr />"
             if (prepend == true) {
                 $('#tweet-container').prepend(tweetFormattedHtml);
             }
@@ -73,7 +85,8 @@
                     else {
                         $('#LoadMore').hide();
                     }
-                    parseTweets();
+                    parseTweets()
+                    updateHashLinks()
                 },
                 error: function (data) {
                     console.log("error");
@@ -128,6 +141,7 @@
                         // fetchTweets();
                         this_.find("input[type=text], textarea").val("");
                         attachTweet(data, true);
+                        updateHashLinks();
 
                     },
                     error: function (data) {
