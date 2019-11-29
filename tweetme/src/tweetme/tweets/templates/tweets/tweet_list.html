@@ -22,24 +22,71 @@
         var tweetList = [];
         var nextTweetUrl;
 
+
+        $(document.body).on("click", ".retweetBtn", function (e) {
+
+            e.preventDefault();
+            console.log("clicked");
+            var url = "/api" + $(this).attr("href");
+            $.ajax({
+                method: "GET",
+                url: url,
+                success: function (data) {
+                    console.log(data);
+                    attachTweet(data, true, true);
+                    updateHashLinks();
+
+                },
+                error: function (data) {
+                    console.log("error");
+                    console.log(data);
+
+                },
+
+            });
+        });
+
+        $('.retweetBtn').click(function (e) {
+            e.preventDefault();
+            console.log("clicked");
+            var url = "/api" + $(this).attr("href");
+            $.ajax({
+                method: "GET",
+                url: url,
+                success: function (data) {
+                    console.log(data);
+                },
+                error: function (data) {
+                    console.log("error");
+                    console.log(data);
+
+                }
+
+            });
+        });
+
         function updateHashLinks() {
             $('.hashtags').each(function (data) {
                 var hashtagRegex = /(^|\s)#([\w\d-]+)/g;
-                console.log(hashtagRegex);
                 var newText = $(this).html().replace(hashtagRegex, "$1<a href='/tags/$2/'>#$2</a>");
                 $(this).html(newText);
-                console.log(newText);
-
-
             });
         }
 
-        function attachTweet(tweetValue, prepend) {
+        function attachTweet(tweetValue, prepend, retweet) {
             var tweetUser = tweetValue.user;
             var tweetContent = tweetValue.content;
             var dateDisplay = tweetValue.date_display;
             var timeSince = tweetValue.timesince;
-            var tweetFormattedHtml = "<div class='media mt-4'><div class='media-body'><h5 class='mt-0 hashtags'>" + tweetContent + "</h5>" + "via <a href='" + tweetUser.url + "'>" + tweetUser.username + "</a> | " + dateDisplay + " | " + timeSince + "</div><hr />"
+            var tweetFormattedHtml;
+            if (retweet && tweetValue.parent) {
+                // retweet 
+                var mainTweet = tweetValue.parent;
+                tweetFormattedHtml = "<div class='media mt-4'><div class='media-body'><h6 class='text-secondary'>Retweet via " + tweetUser.username + " on " + dateDisplay + "</h6><h5 class='mt-0 hashtags'>" + mainTweet.content + "</h5>" + "via <a href='" + mainTweet.user.url + "'>" + mainTweet.user.username + "</a> | " + mainTweet.date_display + " | " + mainTweet.timesince + " | <a href='/tweet/" + mainTweet.id + "'>View <i class='fa fa-caret-right'></i></a> | <a class='retweetBtn' href='/tweet/" + tweetValue.id + "/retweet/'>Retweet <i class='fa fa-caret-right'></i></a></div><hr />"
+            } else {
+                // new tweet 
+                tweetFormattedHtml = "<div class='media mt-4'><div class='media-body'><h5 class='mt-0 hashtags'>" + tweetContent + "</h5>" + "via <a href='" + tweetUser.url + "'>" + tweetUser.username + "</a> | " + dateDisplay + " | " + timeSince + " | <a href='/tweet/" + tweetValue.id + "'>View <i class='fa fa-caret-right'></i></a> | <a class='retweetBtn' href='/tweet/" + tweetValue.id + "/retweet/'>Retweet <i class='fa fa-caret-right'></i></a></div><hr />"
+            }
             if (prepend == true) {
                 $('#tweet-container').prepend(tweetFormattedHtml);
             }
@@ -56,7 +103,12 @@
             else {
                 $.each(tweetList, function (key, value) {
                     var tweetKey = key;
-                    attachTweet(value);
+                    if (value.parent) {
+                        attachTweet(value, false, true);
+                    }
+                    else {
+                        attachTweet(value);
+                    }
                 });
             }
         }
@@ -77,7 +129,6 @@
                 },
                 method: "GET",
                 success: function (data) {
-                    console.log(data);
                     tweetList = data.results;
                     if (data.next) {
                         nextTweetUrl = data.next;
