@@ -1,5 +1,11 @@
 {% extends 'base.html' %}
-
+{% block script %}
+<script>
+    $(document).ready(function () {
+        loadTweetContainer("tweet-container");
+    });
+</script>
+{% endblock script %}
 {% block body %}
 <div class="card shadow-lg">
     <div class="card-body">
@@ -15,9 +21,11 @@
                 <div class="media mt-4">
                     <div class="media-body">
                         <h1>Tweets <small>({{object.tweet_set.all.count}})</small></h1>
-                        {% for tweet in object.tweet_set.all %}
-                        {{tweet}}<br />
-                        {% endfor %}
+                        <div id="tweet-container" data-url="/api/{{user.username}}/tweet/">
+
+                        </div>
+                        <a href="#" id="LoadMore">Load more tweets</a>
+
                         <hr />
                         <h1>Following <small>({{object.profile.get_following.count}})</small></h1>
                         {% for user in object.profile.get_following %}
